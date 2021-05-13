@@ -46,4 +46,4 @@ class ProteinDomain(models.Model):
     stop = models.IntegerField(null=False, blank=True)
 
     def __str__(self):
-        return self.protein.protein_id +":"+self.domain.domain_id
+        return self.protein.protein_id +":"+self.domain.pfam_id.domain_id
