@@ -44,3 +44,6 @@ class ProteinDomain(models.Model):
     domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
     start = models.IntegerField(null=False, blank=True)
     stop = models.IntegerField(null=False, blank=True)
+
+    def __str__(self):
+        return self.protein.protein_id +":"+self.domain.pfam_id.domain_id
