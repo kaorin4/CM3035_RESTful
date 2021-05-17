@@ -62,13 +62,11 @@ with open(assignment_data_file) as csv_file:
 
 ProteinDomain.objects.all().delete()
 Protein.objects.all().delete()
-Domain.objects.all().delete()
 Pfam.objects.all().delete()
 Taxonomy.objects.all().delete()
 
 pfam_rows = {}
 taxonomy_rows = {}
-domain_rows = {}
 protein_rows = {}
 proteindomain_rows = {}
 
@@ -83,11 +81,6 @@ for pfam_id, pfam_desc in pfam:
     row.save()
     pfam_rows[pfam_id] = row
 
-    row_domain = Domain.objects.create(pfam_id = pfam_rows[pfam_id], 
-                            description = domain[pfam_id])
-    row_domain.save()
-    domain_rows[pfam_id] = row_domain
-
 for taxa_id, data in taxonomy.items():
     row = Taxonomy.objects.create(taxa_id = taxa_id, 
                                 clade = data[0],
@@ -98,10 +91,6 @@ for taxa_id, data in taxonomy.items():
 
 # for item in Pfam.objects.all():
 #     pfam_rows[item.domain_id] = item
-
-
-# for item in Domain.objects.all():
-#     domain_rows[item.pfam_id.domain_id] = item
 
 # for item in Taxonomy.objects.all():
 #     taxonomy_rows[item.taxa_id] = item
@@ -123,7 +112,8 @@ for protein_id, data in proteindomain.items():
         row = ProteinDomain.objects.create(protein = protein_rows[protein_id], 
                                     start = data[1],
                                     stop = data[2],
-                                    domain = domain_rows[domain_id])
+                                    pfam_id = pfam_rows[domain_id],
+                                    description = domain[domain_id])
         row.save()
         proteindomain_rows[protein_id] = row
 
