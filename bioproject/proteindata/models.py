@@ -9,14 +9,6 @@ class Pfam(models.Model):
     def __str__(self):
         return self.domain_id
 
-
-class Domain(models.Model):
-    description = models.CharField(max_length=256, null=False, blank=False)
-    pfam_id = models.ForeignKey(Pfam, on_delete=models.DO_NOTHING)
-
-    def __str__(self):
-        return str(self.id)
-
 class Taxonomy(models.Model):
     taxa_id = models.CharField(max_length=256, null=False, blank=False)
     clade = models.CharField(max_length=256, null=False, blank=False)
@@ -34,13 +26,14 @@ class Protein(models.Model):
     sequence = models.CharField(max_length=256, null=False, blank=False)
     length = models.IntegerField(null=False, blank=True)
     taxonomy = models.ForeignKey(Taxonomy, on_delete=models.DO_NOTHING)
-    domains = models.ManyToManyField(Domain, through='ProteinDomain')
+    domains = models.ManyToManyField(Pfam, through='ProteinDomain')
 
     def __str__(self):
         return self.protein_id
 
 class ProteinDomain(models.Model):
-    protein = models.ForeignKey(Protein, on_delete=models.CASCADE)
-    domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
+    protein = models.ForeignKey(Protein, on_delete=models.CASCADE, related_name='domain_to_protein')
+    pfam_id = models.ForeignKey(Pfam, on_delete=models.CASCADE, related_name='protein_to_domain')
+    description = models.CharField(max_length=256, null=False, blank=False)
     start = models.IntegerField(null=False, blank=True)
     stop = models.IntegerField(null=False, blank=True)
