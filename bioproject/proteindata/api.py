@@ -11,10 +11,7 @@ from .serializers import *
 
 # GET request
 # returns the domain id and it's description
-class PfamDetails(mixins.CreateModelMixin,
-                    mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin,
-                    mixins.DestroyModelMixin,
+class PfamDetails(mixins.RetrieveModelMixin,
                     generics.GenericAPIView):
 
     lookup_field = 'domain_id'
@@ -23,3 +20,43 @@ class PfamDetails(mixins.CreateModelMixin,
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+class ProteinDetails(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    generics.GenericAPIView):
+
+    lookup_field = 'protein_id'
+    queryset = Protein.objects.all()
+    serializer_class = ProteinSerializer
+
+    # each of the functions we want implemented
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+class ProteinByTaxonomy(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    generics.GenericAPIView):
+
+    lookup_field = 'taxonomy__taxa_id'
+    queryset = Protein.objects.all()
+    serializer_class = ProteinByTaxonomySerializer
+
+    # each of the functions we want implemented
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+

@@ -15,12 +15,6 @@ class ProteinDomainAdmin(admin.ModelAdmin):
 class ProteinDomainInline(admin.TabularInline):
     model = Protein.domains.through
 
-class DomainAdmin(admin.ModelAdmin):
-    model = Domain
-    inlines = [
-        ProteinDomainInline,
-    ]
-
 class ProteinAdmin(admin.ModelAdmin):
     model = Protein
     inlines = [
@@ -31,5 +25,4 @@ class ProteinAdmin(admin.ModelAdmin):
 admin.site.register(Pfam, PfamAdmin)
 admin.site.register(Taxonomy, TaxonomyAdmin)
 admin.site.register(ProteinDomain, ProteinDomainAdmin)
-admin.site.register(Domain, DomainAdmin)
 admin.site.register(Protein, ProteinAdmin)
