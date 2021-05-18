@@ -55,9 +55,9 @@ with open(assignment_data_file) as csv_file:
             protein[row[0]][1] = row[1]
             protein[row[0]][2] = row[8]
         if row[0] not in proteindomain.keys():
-            proteindomain[row[0]] = [[row[5]], row[6], row[7]]
+            proteindomain[row[0]] = [[row[5], row[6], row[7]]]
         else:
-            proteindomain[row[0]][0].append(row[5])
+            proteindomain[row[0]].append([row[5], row[6], row[7]])
 
 
 ProteinDomain.objects.all().delete()
@@ -98,25 +98,13 @@ for taxa_id, data in taxonomy.items():
 # for item in Protein.objects.all():
 #     protein_rows[item.protein_id] = item
 
-
-for protein_id, data in protein.items():
-    row = Protein.objects.create(protein_id = protein_id, 
-                                sequence = data[0],
-                                taxonomy = taxonomy_rows[data[1]],
-                                length = data[2])
-    row.save()
-    protein_rows[protein_id] = row
-
 for protein_id, data in proteindomain.items():
-    for domain_id in proteindomain[protein_id][0]:
+    for domain_id, protein_start, protein_stop in data:
         row = ProteinDomain.objects.create(protein = protein_rows[protein_id], 
-                                    start = data[1],
-                                    stop = data[2],
+                                    start = protein_start,
+                                    stop = protein_stop,
                                     pfam_id = pfam_rows[domain_id],
                                     description = domain[domain_id])
         row.save()
         proteindomain_rows[protein_id] = row
-
-
-
 
