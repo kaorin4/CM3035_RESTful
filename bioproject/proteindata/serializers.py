@@ -13,11 +13,11 @@ class TaxonomySerializer(serializers.ModelSerializer):
 
 class ProteinDomainSerializer(serializers.ModelSerializer):
 
-    domain = PfamSerializer(many=False, read_only=True)
+    pfam_id = PfamSerializer(many=False, read_only=True)
 
     class Meta:
         model = ProteinDomain
-        fields = ['domain', 'start', 'stop']
+        fields = ['pfam_id', 'description', 'start', 'stop']
 
 class ProteinSerializer(serializers.ModelSerializer):
 
