@@ -9,6 +9,8 @@ from rest_framework import mixins
 from .models import *
 from .serializers import *
 
+from django.db.models import FloatField
+
 # GET request
 # returns the domain id and it's description
 class PfamDetails(mixins.RetrieveModelMixin,
@@ -63,24 +65,19 @@ class FilterDomainByTaxonomy(generics.ListAPIView):
 
 class ProteinCoverage(generics.GenericAPIView):
     """
-    Retrieve list of transactions
+    Retrieve coverage of a protein
     """
     def get(self, request, protein_id):
-        """List Transactions"""
-        # protein = Protein.objects.get(protein__protein_id=protein_id)
-        # serializer = ProteinSerializer(proteins, many=True)
 
         domains = ProteinDomain.objects.filter(protein__protein_id=protein_id)
         protein = Protein.objects.get(protein_id=protein_id)
-        start_sum = domains.all().aggregate(models.Sum('start'))
-        stop_sum = domains.all().aggregate(models.Sum('stop'))
         length = protein.length
-        coverage = (start_sum['start__sum'] - stop_sum['stop__sum'])/length
-        # print(start_sum)
-        return Response(abs(coverage))
+        result = domains.aggregate(difference=models.Sum('start') - models.Sum('stop'))
         
-        # return_data = sum([lambda items: items['amount']])
-        # return Response(return_data)
+        coverage = result['difference']/length
+
+        return Response(abs(coverage))
+
 
 
 
