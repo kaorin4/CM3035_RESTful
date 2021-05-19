@@ -44,19 +44,13 @@ class ProteinDetails(mixins.CreateModelMixin,
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
-class ProteinByTaxonomy(mixins.CreateModelMixin,
-                    mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin,
-                    mixins.DestroyModelMixin,
-                    generics.GenericAPIView):
+class FilterProteinByTaxonomy(generics.ListAPIView):
+    
+    queryset = Protein.objects.all().distinct()
+    serializer_class = ProteinListSerializer
 
-    lookup_field = 'taxonomy__taxa_id'
-    queryset = Protein.objects.all()
-    serializer_class = ProteinByTaxonomySerializer
-
-    # each of the functions we want implemented
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+    def filter_queryset(self, queryset):
+        return queryset.filter(taxonomy__taxa_id=self.kwargs.get('taxa_id'))
 
 
 

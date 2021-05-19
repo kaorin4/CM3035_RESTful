@@ -21,14 +21,14 @@ class ProteinDomainSerializer(serializers.ModelSerializer):
 
 class ProteinSerializer(serializers.ModelSerializer):
 
-    domains = ProteinDomainSerializer(source="domain_to_protein", many=True, read_only=True)
-    taxonomy = TaxonomySerializer(many=False, read_only=True)
+    domains = ProteinDomainSerializer(source="domain_to_protein", many=True)
+    taxonomy = TaxonomySerializer(many=False)
 
     class Meta:
         model = Protein
         fields = ['protein_id', 'sequence', 'taxonomy', 'length', 'domains']
 
-class ProteinByTaxonomySerializer(serializers.ModelSerializer):
+class ProteinListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Protein
