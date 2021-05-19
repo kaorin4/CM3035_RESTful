@@ -61,6 +61,27 @@ class FilterDomainByTaxonomy(generics.ListAPIView):
     def filter_queryset(self, queryset):
         return queryset.filter(protein__taxonomy__taxa_id=self.kwargs.get('taxa_id'))
 
+class ProteinCoverage(generics.GenericAPIView):
+    """
+    Retrieve list of transactions
+    """
+    def get(self, request, protein_id):
+        """List Transactions"""
+        # protein = Protein.objects.get(protein__protein_id=protein_id)
+        # serializer = ProteinSerializer(proteins, many=True)
+
+        domains = ProteinDomain.objects.filter(protein__protein_id=protein_id)
+        protein = Protein.objects.get(protein_id=protein_id)
+        start_sum = domains.all().aggregate(models.Sum('start'))
+        stop_sum = domains.all().aggregate(models.Sum('stop'))
+        length = protein.length
+        coverage = (start_sum['start__sum'] - stop_sum['stop__sum'])/length
+        # print(start_sum)
+        return Response(abs(coverage))
+        
+        # return_data = sum([lambda items: items['amount']])
+        # return Response(return_data)
+
 
 
 

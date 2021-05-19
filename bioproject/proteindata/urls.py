@@ -10,5 +10,6 @@ urlpatterns = [
     path('api/pfam/<str:domain_id>/', api.PfamDetails.as_view(), name='pfam_api'),
     path('api/proteins/<str:taxa_id>/', api.FilterProteinByTaxonomy.as_view(), name='protein_tax_api'),
     path('api/pfams/<str:taxa_id>/', api.FilterDomainByTaxonomy.as_view(), name='domain_tax_api'),
+    path('api/coverage/<str:protein_id>/', api.ProteinCoverage.as_view(), name='protein_coverage'),
     # path('api/proteins/(?P<username>.+)/', api.ProteinByTaxonomy.as_view(), name='protein_tax_api'),
 ]
