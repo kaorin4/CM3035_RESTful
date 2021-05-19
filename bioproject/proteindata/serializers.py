@@ -34,3 +34,10 @@ class ProteinListSerializer(serializers.ModelSerializer):
         model = Protein
         fields = ['id', 'protein_id']
 
+class ProteinDomainListSerializer(serializers.ModelSerializer):
+
+    pfam_id = PfamSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = ProteinDomain
+        fields = ['id', 'pfam_id']

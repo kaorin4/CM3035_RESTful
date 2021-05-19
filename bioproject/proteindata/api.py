@@ -53,4 +53,14 @@ class FilterProteinByTaxonomy(generics.ListAPIView):
         return queryset.filter(taxonomy__taxa_id=self.kwargs.get('taxa_id'))
 
 
+class FilterDomainByTaxonomy(generics.ListAPIView):
+    
+    queryset = ProteinDomain.objects.all()
+    serializer_class = ProteinDomainListSerializer
+
+    def filter_queryset(self, queryset):
+        return queryset.filter(protein__taxonomy__taxa_id=self.kwargs.get('taxa_id'))
+
+
+
 
