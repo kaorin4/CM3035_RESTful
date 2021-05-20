@@ -3,14 +3,14 @@ from django.db import models
 # Create your models here.
 
 class Pfam(models.Model):
-    domain_id = models.CharField(max_length=256, null=False, blank=False)
+    domain_id = models.CharField(max_length=256, null=False, blank=False, unique=True)
     domain_description = models.CharField(max_length=256, null=False, blank=False)
 
     def __str__(self):
         return self.domain_id
 
 class Taxonomy(models.Model):
-    taxa_id = models.CharField(max_length=256, null=False, blank=False)
+    taxa_id = models.CharField(max_length=256, null=False, blank=False, unique=True)
     clade = models.CharField(max_length=256, null=False, blank=False)
     genus = models.CharField(max_length=256, null=False, blank=False)
     species = models.CharField(max_length=256, null=False, blank=False)
@@ -22,7 +22,7 @@ class Taxonomy(models.Model):
         return self.taxa_id
 
 class Protein(models.Model):
-    protein_id = models.CharField(max_length=256, null=False, blank=False)
+    protein_id = models.CharField(max_length=256, null=False, blank=False, unique=True)
     sequence = models.CharField(max_length=256, null=False, blank=False)
     length = models.IntegerField(null=False, blank=True)
     taxonomy = models.ForeignKey(Taxonomy, on_delete=models.DO_NOTHING)
