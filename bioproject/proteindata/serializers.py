@@ -11,13 +11,24 @@ class TaxonomySerializer(serializers.ModelSerializer):
         model = Taxonomy
         fields = ['taxa_id', 'clade', 'genus', 'species']
 
+
 class ProteinDomainSerializer(serializers.ModelSerializer):
 
-    pfam_id = PfamSerializer(many=False, read_only=True)
+    pfam_id = PfamSerializer(many=False)
 
     class Meta:
         model = ProteinDomain
         fields = ['pfam_id', 'description', 'start', 'stop']
+
+    def create(self, validated_data):
+        protein = validated_data.get('protein')
+        domain = self.initial_data.get('pfam_id')
+
+        protein_domain = ProteinDomain(**{**validated_data,
+                            'protein': Protein.objects.get(protein_id=protein['protein_id']),
+                            'pfam_id': Pfam.objects.get(domain_id=domain['pfam_id'])
+                        })
+        protein_domain.save()
 
 
 class ProteinSerializer(serializers.ModelSerializer):
@@ -30,10 +41,10 @@ class ProteinSerializer(serializers.ModelSerializer):
         fields = ['protein_id', 'sequence', 'taxonomy', 'length', 'domains']
 
     def create(self, validated_data):
-        taxonomy_data = validated_data.get('taxonomy')
+        taxonomy_data = validated_data.pop('taxonomy')
         protein_domains_data = validated_data.pop('domain_to_protein')
         domains = self.initial_data.get('domains')
-
+        print(validated_data)
         # create new protein and pass data as Python Dict
         protein = Protein(**{**validated_data,
                         'taxonomy': Taxonomy.objects.get(taxa_id=taxonomy_data['taxa_id'])
