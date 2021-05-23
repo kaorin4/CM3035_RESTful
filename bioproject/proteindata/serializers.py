@@ -2,11 +2,18 @@ from rest_framework import serializers
 from .models import *
 
 class PfamSerializer(serializers.ModelSerializer):
+
+    domain_id = serializers.CharField()
+
     class Meta:
         model = Pfam
         fields = ['domain_id', 'domain_description']
 
+
 class TaxonomySerializer(serializers.ModelSerializer):
+
+    taxa_id = serializers.CharField()
+
     class Meta:
         model = Taxonomy
         fields = ['taxa_id', 'clade', 'genus', 'species']
@@ -19,6 +26,11 @@ class ProteinDomainSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProteinDomain
         fields = ['pfam_id', 'description', 'start', 'stop']
+
+    def validate(self, data):
+            if data['start'] > data['stop']:
+                raise serializers.ValidationError('Stop should be larger than start')
+            return data
 
     def create(self, validated_data):
         protein = validated_data.get('protein')
@@ -40,11 +52,16 @@ class ProteinSerializer(serializers.ModelSerializer):
         model = Protein
         fields = ['protein_id', 'sequence', 'taxonomy', 'length', 'domains']
 
+    def validate_length(self, length):
+        if length < 0:
+            raise serializers.ValidationError("Length should be positive")
+        return length
+
     def create(self, validated_data):
         taxonomy_data = validated_data.pop('taxonomy')
         protein_domains_data = validated_data.pop('domain_to_protein')
         domains = self.initial_data.get('domains')
-        print(validated_data)
+
         # create new protein and pass data as Python Dict
         protein = Protein(**{**validated_data,
                         'taxonomy': Taxonomy.objects.get(taxa_id=taxonomy_data['taxa_id'])
