@@ -10,5 +10,5 @@ urlpatterns = [
     path('api/proteins/<str:taxa_id>/', api.FilterProteinByTaxonomy.as_view(), name='protein_tax_api'),
     path('api/pfams/<str:taxa_id>/', api.FilterDomainByTaxonomy.as_view(), name='domain_tax_api'),
     path('api/coverage/<str:protein_id>/', api.ProteinCoverage.as_view(), name='protein_coverage'),
-    path('api/protein/', api.PostProteinDetails.as_view(), name='protein_api'),
+    path('api/protein/', api.PostProteinDetails.as_view(), name='create_protein_api'),
 ]
