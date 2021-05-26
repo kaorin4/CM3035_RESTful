@@ -53,7 +53,7 @@ class ProteinSerializer(serializers.ModelSerializer):
         fields = ['protein_id', 'sequence', 'taxonomy', 'length', 'domains']
 
     def validate_length(self, length):
-        if length < 0:
+        if length < 1:
             raise serializers.ValidationError("Length should be positive")
         return length
 

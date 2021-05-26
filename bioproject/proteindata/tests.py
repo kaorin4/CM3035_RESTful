@@ -25,13 +25,10 @@ class ProteinTest(APITestCase):
         self.protein1 = ProteinFactory.create(pk=1, protein_id="A0A014PQC0")
         self.domain1 = PfamFactory.create()
         self.protein_domain1 = ProteinDomainFactory.create(protein=self.protein1, pfam_id=self.domain1)
-        self.taxonomy2 = TaxonomyFactory.create(taxa_id="53657")
-        self.protein2 = ProteinFactory.create(pk=2, protein_id="A0A016T911", taxonomy=self.taxonomy2)
 
         # Set urls
         self.good_url = reverse("protein_api", kwargs={"protein_id": "A0A014PQC0"})
         self.bad_url = '/api/protein/H/'
-        self.delete_url = reverse("protein_api", kwargs={"protein_id":"A0A016T911"})
 
     def tearDown(self):
 
