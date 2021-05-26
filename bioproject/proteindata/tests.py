@@ -11,6 +11,36 @@ from .serializers import *
 
 # Create your tests here.
 
+class ProteinSerializerTest(APITestCase):
+    protein1 = None
+    proteinSerializer = None
+
+    def setUp(self):
+        self.protein1 = ProteinFactory.create(pk=1, protein_id="A0A014PQC0")
+        self.proteinSerializer = ProteinSerializer(instance=self.protein1)
+
+    def tearDown(self):
+
+        # Reset test tables
+        Pfam.objects.all().delete()
+        Taxonomy.objects.all().delete()
+        ProteinDomain.objects.all().delete()
+        Protein.objects.all().delete()
+
+        # Reset primary keys
+        PfamFactory.reset_sequence(0)
+        TaxonomyFactory.reset_sequence(0)
+        ProteinDomainFactory.reset_sequence(0)
+        ProteinFactory.reset_sequence(0)
+
+    def test_proteinSerializerHasAllKeys(self):
+        """
+        Ensure that all keys in the object are included in the serializer
+        """
+        data = self.proteinSerializer.data
+        self.assertEqual(set(data.keys()), set(['protein_id', 'sequence', 'length', 'taxonomy', 'domains']))
+        # self.assertEqual(data['protein_id'], 'A0A014PQC0')
+
 class ProteinTest(APITestCase):
 
     protein1 = None
