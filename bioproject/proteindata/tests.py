@@ -18,6 +18,8 @@ class ProteinSerializerTest(APITestCase):
     def setUp(self):
         self.protein1 = ProteinFactory.create(pk=1, protein_id="A0A014PQC0")
         self.proteinSerializer = ProteinSerializer(instance=self.protein1)
+        self.domain1 = PfamFactory.create()
+        self.protein_domain1 = ProteinDomainFactory.create(protein=self.protein1, pfam_id=self.domain1)
 
     def tearDown(self):
 
@@ -39,25 +41,26 @@ class ProteinSerializerTest(APITestCase):
         """
         data = self.proteinSerializer.data
         self.assertEqual(set(data.keys()), set(['protein_id', 'sequence', 'length', 'taxonomy', 'domains']))
-        # self.assertEqual(data['protein_id'], 'A0A014PQC0')
 
-class ProteinTest(APITestCase):
+
+class GetProteinTest(APITestCase):
+    """
+    Test module for protein GET request
+    """
 
     protein1 = None
-    protein2 = None
-    protein3 = None
     good_url = ''
     bad_url = ''
     delete_url = ''
 
     def setUp(self):
         # Create proteins
-        self.protein1 = ProteinFactory.create(pk=1, protein_id="A0A014PQC0")
+        self.protein1 = ProteinFactory.create(pk=1, protein_id='A0A014PQC0')
         self.domain1 = PfamFactory.create()
         self.protein_domain1 = ProteinDomainFactory.create(protein=self.protein1, pfam_id=self.domain1)
 
         # Set urls
-        self.good_url = reverse("protein_api", kwargs={"protein_id": "A0A014PQC0"})
+        self.good_url = reverse('protein_api', kwargs={'protein_id': 'A0A014PQC0'})
         self.bad_url = '/api/protein/H/'
 
     def tearDown(self):
@@ -77,7 +80,7 @@ class ProteinTest(APITestCase):
 
     def test_proteinDetailReturnSuccess(self):
         """
-        Ensure we get an 200 OK status code when making a valid get request.
+        Ensure we get an 200 OK status code when making a valid GET request.
         """
         response = self.client.get(self.good_url, format='json')
         response.render()
@@ -94,12 +97,12 @@ class ProteinTest(APITestCase):
 
     def test_proteinDetailContainPfamId(self):
         """
-        Ensure we get the domain data of the requested protein
+        Ensure we get the domain id data of the requested protein
         """
         response = self.client.get(self.good_url, format='json')
         response.render()
         data = json.loads(response.content)
-        self.assertTrue('pfam_id' in data['domains'][0])
+        self.assertTrue('PF13041' in data['domains'][0]['pfam_id']['domain_id'])
 
     def test_proteinDetailReturnFailOnBadProteinId(self):
         """
@@ -108,3 +111,97 @@ class ProteinTest(APITestCase):
         response = self.client.get(self.bad_url, format='json')
         self.assertEqual(response.status_code, 404)
 
+
+class PostProteinTest(APITestCase):
+
+    valid_protein = ''
+    invalid_protein = ''
+    good_url = ''
+    bad_url = ''
+
+    def setUp(self):
+        # Add taxonomy, factory data
+        TaxonomyFactory.create()
+        PfamFactory.create()
+
+        # Set valid and invalid data
+        self.valid_protein = {
+            "protein_id": "Z0Z1000",
+            "sequence": "MVIGVGFLLVLFSSSVLGILNAGVQLRI",
+            "taxonomy": {
+                "taxa_id": 180129,
+                "clade": "O",
+                "genus": "Oryctolagus Lilljeborg",
+                "species": "Oryctolagus cuniculus"
+            },
+            "length": 101,
+            "domains": [
+                {
+                    "pfam_id": {
+                        "domain_id": "PF13041",
+                        "domain_description": "PPRrepeatfamily"
+                    },
+                    "description": "PPRrepeatfamily",
+                    "start": 40,
+                    "stop": 94
+                }
+            ]
+        }
+
+        self.invalid_protein = {
+            "protein_id": "",
+            "sequence": "MVIGVGFLLVLFSSSVLGILNAGVQLRI",
+            "taxonomy": {
+                "taxa_id": 180129,
+                "clade": "O",
+                "genus": "Oryctolagus Lilljeborg",
+                "species": "Oryctolagus cuniculus"
+            },
+            "length": 101,
+            "domains": [
+                {
+                    "pfam_id": {
+                        "domain_id": "PF13041",
+                        "domain_description": "PPRrepeatfamily"
+                    },
+                    "description": "PPRrepeatfamily",
+                    "start": 40,
+                    "stop": 94
+                }
+            ]
+        }
+
+        # Set urls
+        self.good_url = reverse('create_protein_api')
+
+    def tearDown(self):
+
+        # Reset test tables
+        Pfam.objects.all().delete()
+        Taxonomy.objects.all().delete()
+        ProteinDomain.objects.all().delete()
+        Protein.objects.all().delete()
+
+        # Reset primary keys
+        PfamFactory.reset_sequence(0)
+        TaxonomyFactory.reset_sequence(0)
+        ProteinDomainFactory.reset_sequence(0)
+        ProteinFactory.reset_sequence(0)
+
+
+    def test_createValidProtein(self):
+        """
+        Ensure we are able to create a new protein with a POST request
+        """
+
+        response = self.client.post(self.good_url, self.valid_protein, format='json')
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Protein.objects.get(protein_id='Z0Z1000').protein_id, 'Z0Z1000')
+
+    def test_createInvalidProtein(self):
+        """
+        Ensure that POST requests with invalid data fails
+        """
+
+        response = self.client.post(self.good_url, self.invalid_protein, format='json')
+        self.assertEqual(response.status_code, 400)
