@@ -95,6 +95,14 @@ for taxa_id, data in taxonomy.items():
 # for item in Taxonomy.objects.all():
 #     taxonomy_rows[item.taxa_id] = item
 
+for protein_id, data in protein.items():
+    row = Protein.objects.create(protein_id = protein_id,
+                                sequence = data[0],
+                                taxonomy = taxonomy_rows[data[1]],
+                                length = data[2])
+    row.save()
+    protein_rows[protein_id] = row
+
 # for item in Protein.objects.all():
 #     protein_rows[item.protein_id] = item
 
