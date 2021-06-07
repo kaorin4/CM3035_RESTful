@@ -45,7 +45,7 @@ class ProteinDomainSerializer(serializers.ModelSerializer):
 
 class ProteinSerializer(serializers.ModelSerializer):
 
-    domains = ProteinDomainSerializer(source="domain_to_protein", many=True)
+    domains = ProteinDomainSerializer(source="domains_in_protein", many=True)
     taxonomy = TaxonomySerializer(many=False)
 
     class Meta:
@@ -59,7 +59,7 @@ class ProteinSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         taxonomy_data = validated_data.pop('taxonomy')
-        protein_domains_data = validated_data.pop('domain_to_protein')
+        protein_domains_data = validated_data.pop('domains_in_protein')
         domains = self.initial_data.get('domains')
 
         # create new protein and pass data as Python Dict
