@@ -7,6 +7,7 @@ class PfamSerializer(serializers.ModelSerializer):
     """
 
     domain_id = serializers.CharField(required=True)
+    domain_description = serializers.CharField(required=False)
 
     class Meta:
         model = Pfam
@@ -16,6 +17,9 @@ class PfamSerializer(serializers.ModelSerializer):
 class TaxonomySerializer(serializers.ModelSerializer):
 
     taxa_id = serializers.RegexField(regex=r'^[0-9]+$', required=True)
+    clade = serializers.CharField(required=False)
+    genus = serializers.CharField(required=False)
+    species = serializers.CharField(required=False)
 
     class Meta:
         model = Taxonomy
@@ -37,7 +41,7 @@ class ProteinDomainSerializer(serializers.ModelSerializer):
         Check that the start is before stop
         """
         if data['start'] > data['stop']:
-            raise serializers.ValidationError('Stop should be larger than start')
+            raise serializers.ValidationError('Stop should be greater than start')
         return data
 
     def create(self, validated_data):
