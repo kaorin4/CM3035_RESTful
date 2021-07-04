@@ -11,11 +11,15 @@ from .serializers import *
 
 from django.db.models import FloatField
 
-class ProteinDetails(generics.RetrieveAPIView):
+class ProteinDetails(generics.RetrieveDestroyAPIView):
     """
     GET request
     receives protein_id as parameter
     returns the detail of that protein
+    
+    DELETE request
+    receives protein_id as parameter
+    deletes the selected protein
     """
 
     lookup_field = 'protein_id'
