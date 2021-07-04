@@ -4,7 +4,6 @@ from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework import generics
 from rest_framework import mixins
 from .models import *
@@ -12,20 +11,24 @@ from .serializers import *
 
 from django.db.models import FloatField
 
-# GET request
-# receives protein_id as parameter
-# returns the detail of that protein
 class ProteinDetails(generics.RetrieveAPIView):
+    """
+    GET request
+    receives protein_id as parameter
+    returns the detail of that protein
+    """
 
     lookup_field = 'protein_id'
     queryset = Protein.objects.all()
     serializer_class = ProteinSerializer
 
 
-# GET request
-# receives pfam_id as parameter
-# returns the domain_id and it's description
 class PfamDetails(generics.RetrieveAPIView):
+    """
+    GET request
+    receives pfam_id as parameter
+    returns the domain_id and it's description
+    """
 
     lookup_field = 'domain_id'
     queryset = Pfam.objects.all()
@@ -33,21 +36,47 @@ class PfamDetails(generics.RetrieveAPIView):
 
 
 class FilterProteinByTaxonomy(generics.ListAPIView):
-    
+    """
+    GET request
+    receives taxa_id as parameter
+    return a list of all proteins for a given organism
+    """
     queryset = Protein.objects.all().distinct()
     serializer_class = ProteinListSerializer
 
+    """
+    Filter proteins by taxa_id
+    """
     def filter_queryset(self, queryset):
         return queryset.filter(taxonomy__taxa_id=self.kwargs.get('taxa_id'))
 
+class FilterProteinDomainByTaxonomy(generics.ListAPIView):
+    """
+    GET request
+    receives taxa_id as parameter
+    return a list of all protein_id and protein domain id for a given organism
+    """
+    queryset = ProteinDomain.objects.all()
+    serializer_class = ProteinAndProteinDomainListSerializer
+
+    """
+    Filter the list of protein domains of a given taxa_id
+    """
+    def filter_queryset(self, queryset):
+        return queryset.filter(protein__taxonomy__taxa_id=self.kwargs.get('taxa_id'))
+
 
 class FilterDomainByTaxonomy(generics.ListAPIView):
-    
+    """
+    GET request
+    receives taxa_id as parameter
+    return a list of all domains for a given organism
+    """
     queryset = ProteinDomain.objects.all()
     serializer_class = ProteinDomainListSerializer
 
     """
-    Retrieve the list of domains of a given taxonomy_id
+    Retrieve the list of domains of a given taxa_id
     """
     def filter_queryset(self, queryset):
         return queryset.filter(protein__taxonomy__taxa_id=self.kwargs.get('taxa_id'))
@@ -68,52 +97,12 @@ class ProteinCoverage(generics.GenericAPIView):
         return Response(abs(coverage))
 
 class PostProteinDetails(generics.CreateAPIView):
-
+    """
+    POST request
+    Creates a new protein object as well as its corresponding proteindomain objects
+    """
     queryset = Protein.objects.all()
     serializer_class = ProteinSerializer
-
-    # def post(self, request, *args, **kwargs):
-    #     return self.create(request, *args, **kwargs)
-
-# class PostProteinDetails(generics.CreateAPIView):
-
-#     queryset = Protein.objects.all()
-#     serializer_class = ProteinSerializer
-#     permission_classes = ()
-#     authentication_classes = ()
-
-#     # def post(self, request, *args, **kwargs):
-#     #     return self.create(request, *args, **kwargs)
-
-#     def create(self, request, *args, **kwargs):
-#         protein_form = ProteinForm(request.data)
-#         if protein_form.is_valid():
-#             serializer = self.serializer_class(data=request.data)
-#             serializer.is_valid(raise_exception=True)
-#             # data = serializer.validated_data
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({'errors': protein_form.errors}, status=400)
-
-
-#     # def create(self, request, *args, **kwargs):
-#     #     serializer = self.get_serializer(data=request.data)
-#     #     serializer.is_valid(raise_exception=True)
-#     #     self.perform_create(serializer)
-#     #     headers = self.get_success_headers(serializer.data)
-#     #     return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-#     # def perform_create(self, serializer):
-#     #     serializer.save()
-
-#     # def get_success_headers(self, data):
-#     #     try:
-#     #         return {'Location': str(data[api_settings.URL_FIELD_NAME])}
-#     #     except (TypeError, KeyError):
-#     #         return {}
-
-
 
 
 

@@ -9,6 +9,8 @@ from .models import *
 
 
 class PfamFactory(factory.django.DjangoModelFactory):
+    """Creates Pfam test fixture"""
+
     domain_id = "PF13041"
     domain_description = "PPRrepeatfamily"
 
@@ -16,6 +18,8 @@ class PfamFactory(factory.django.DjangoModelFactory):
         model = Pfam
 
 class TaxonomyFactory(factory.django.DjangoModelFactory):
+    """Creates Taxonomy test fixture"""
+
     taxa_id = "180129"
     clade = "O"
     genus = "Oryctolagus Lilljeborg"
@@ -25,6 +29,7 @@ class TaxonomyFactory(factory.django.DjangoModelFactory):
         model = Taxonomy
 
 class ProteinFactory(factory.django.DjangoModelFactory):
+    """Creates Protein test fixture"""
 
     protein_id = get_random_string(length=6)
     sequence = get_random_string(length=20)
@@ -35,6 +40,8 @@ class ProteinFactory(factory.django.DjangoModelFactory):
         model = Protein
 
 class ProteinDomainFactory(factory.django.DjangoModelFactory):
+    """Creates ProteinDomain test fixture"""
+
     protein = factory.SubFactory(ProteinFactory)
     pfam_id = factory.SubFactory(PfamFactory)
     description = "Pentatricopeptide repeat"
@@ -45,5 +52,6 @@ class ProteinDomainFactory(factory.django.DjangoModelFactory):
         model = ProteinDomain
 
 class ProteinWithDomainFactory(ProteinFactory):
+    """Creates Protein with domain test fixture"""
 
     domain = factory.RelatedFactory(ProteinDomainFactory, 'pfam_id')

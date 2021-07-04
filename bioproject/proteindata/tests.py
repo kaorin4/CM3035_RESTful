@@ -113,6 +113,9 @@ class GetProteinTest(APITestCase):
 
 
 class PostProteinTest(APITestCase):
+    """
+    Test module for protein POST request
+    """
 
     valid_protein = ''
     invalid_protein = ''
@@ -205,3 +208,115 @@ class PostProteinTest(APITestCase):
 
         response = self.client.post(self.good_url, self.invalid_protein, format='json')
         self.assertEqual(response.status_code, 400)
+
+
+class GetPfamTest(APITestCase):
+    """
+    Test module for pfam GET request
+    """
+
+    pfam = None
+    good_url = ''
+    bad_url = ''
+
+    def setUp(self):
+        # Create pfam
+        self.pfam = PfamFactory.create()
+
+        # Set urls
+        self.good_url = reverse('pfam_api', kwargs={'domain_id': 'PF13041'})
+        self.bad_url = '/api/pfam/H/'
+
+    def tearDown(self):
+
+        # Reset test tables
+        Pfam.objects.all().delete()
+
+        # Reset primary keys
+        PfamFactory.reset_sequence(0)
+
+    def test_pfamReturnSuccess(self):
+        """
+        Ensure we get an 200 OK status code when making a valid GET request.
+        """
+        response = self.client.get(self.good_url, format='json')
+        response.render()
+        self.assertEqual(response.status_code, 200)
+
+    def test_PfamReturnCorrectDomainId(self):
+        """
+        Ensure we get the domain id of the requested pfam
+        """
+        response = self.client.get(self.good_url, format='json')
+        response.render()
+        data = json.loads(response.content)
+        self.assertIn(data['domain_id'], 'PF13041')
+
+    def test_PfamReturnCorrectDomainDescription(self):
+        """
+        Ensure we get the domain id of the requested pfam
+        """
+        response = self.client.get(self.good_url, format='json')
+        response.render()
+        data = json.loads(response.content)
+        self.assertIn(data['domain_description'], 'PPRrepeatfamily')
+
+    def test_PfamReturnFailOnBadPfam(self):
+        """
+        Ensure we get a 404 Bad status code when making a get request with an invalid id
+        """
+        response = self.client.get(self.bad_url, format='json')
+        self.assertEqual(response.status_code, 404)
+
+
+class GetCoverage(APITestCase):
+    """
+    Test module for coverage GET request
+    """
+
+    protein = None
+    domain = None
+    protein_domain = None
+    good_url = ''
+    bad_url = ''
+
+    def setUp(self):
+        # Create protein with domain with the same start, stop and length as the real A0A014PQC0
+        self.protein = ProteinFactory.create(pk=1, protein_id='A0A014PQC0', length=338)
+        self.domain = PfamFactory.create()
+        self.protein_domain = ProteinDomainFactory.create(protein=self.protein, 
+                                                            pfam_id=self.domain, 
+                                                            start=157, 
+                                                            stop=314)
+
+        # Set urls
+        self.good_url = reverse('protein_coverage', kwargs={'protein_id': 'A0A014PQC0'})
+
+    def tearDown(self):
+
+        # Reset test tables
+        Protein.objects.all().delete()
+        Pfam.objects.all().delete()
+        ProteinDomain.objects.all().delete()
+
+        # Reset primary keys
+        ProteinFactory.reset_sequence(0)
+        PfamFactory.reset_sequence(0)
+        ProteinDomainFactory.reset_sequence(0)
+
+    def test_coverageReturnSuccess(self):
+        """
+        Ensure we get an 200 OK status code when making a valid GET request.
+        """
+        response = self.client.get(self.good_url, format='json')
+        response.render()
+        self.assertEqual(response.status_code, 200)
+
+    def test_coverageReturnCorrectCoverage(self):
+        """
+        Ensure we get the right coverage of the requested protein
+        """
+        response = self.client.get(self.good_url, format='json')
+        response.render()
+        data = json.loads(response.content)
+        self.assertEqual(data, 0.46449704142011833)

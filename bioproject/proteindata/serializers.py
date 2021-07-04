@@ -2,8 +2,11 @@ from rest_framework import serializers
 from .models import *
 
 class PfamSerializer(serializers.ModelSerializer):
+    """
+    Pfam Serializer that includes domain_id and domain_description fields
+    """
 
-    domain_id = serializers.CharField()
+    domain_id = serializers.CharField(required=True)
 
     class Meta:
         model = Pfam
@@ -12,7 +15,7 @@ class PfamSerializer(serializers.ModelSerializer):
 
 class TaxonomySerializer(serializers.ModelSerializer):
 
-    taxa_id = serializers.CharField()
+    taxa_id = serializers.RegexField(regex=r'^[0-9]+$', required=True)
 
     class Meta:
         model = Taxonomy
@@ -22,15 +25,20 @@ class TaxonomySerializer(serializers.ModelSerializer):
 class ProteinDomainSerializer(serializers.ModelSerializer):
 
     pfam_id = PfamSerializer(many=False)
+    start = serializers.IntegerField(required=True)
+    stop = serializers.IntegerField(required=True)
 
     class Meta:
         model = ProteinDomain
         fields = ['pfam_id', 'description', 'start', 'stop']
 
     def validate(self, data):
-            if data['start'] > data['stop']:
-                raise serializers.ValidationError('Stop should be larger than start')
-            return data
+        """
+        Check that the start is before stop
+        """
+        if data['start'] > data['stop']:
+            raise serializers.ValidationError('Stop should be larger than start')
+        return data
 
     def create(self, validated_data):
         protein = validated_data.get('protein')
@@ -47,12 +55,17 @@ class ProteinSerializer(serializers.ModelSerializer):
 
     domains = ProteinDomainSerializer(source="domains_in_protein", many=True)
     taxonomy = TaxonomySerializer(many=False)
+    sequence = serializers.CharField(required=True)
+    length = serializers.IntegerField(required=True)
 
     class Meta:
         model = Protein
         fields = ['protein_id', 'sequence', 'taxonomy', 'length', 'domains']
 
     def validate_length(self, length):
+        """
+        Check that the length is a positive number
+        """
         if length < 1:
             raise serializers.ValidationError("Length should be positive")
         return length
@@ -80,17 +93,37 @@ class ProteinSerializer(serializers.ModelSerializer):
         return protein
 
 
-
 class ProteinListSerializer(serializers.ModelSerializer):
+    """
+    Serializer that includes id and protein_id of a Protein
+    """
 
     class Meta:
         model = Protein
         fields = ['id', 'protein_id']
 
 class ProteinDomainListSerializer(serializers.ModelSerializer):
+    """
+    Serializer that includes id of ProteinDomain and pfam_id
+    """
 
     pfam_id = PfamSerializer(many=False, read_only=True)
 
     class Meta:
         model = ProteinDomain
         fields = ['id', 'pfam_id']
+
+class ProteinAndProteinDomainListSerializer(serializers.ModelSerializer):
+    """
+    Serializer that includes ProteinDomain id and protein_id
+    """
+
+    protein_id = serializers.CharField(source='protein.protein_id', read_only=True)
+
+    class Meta:
+        model = ProteinDomain
+        fields = ['id', 'protein_id']
+
+            
+
+

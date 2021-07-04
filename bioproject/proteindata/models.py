@@ -25,7 +25,7 @@ class Protein(models.Model):
     protein_id = models.CharField(max_length=256, null=False, blank=False, unique=True)
     sequence = models.CharField(max_length=256, null=False, blank=False)
     length = models.IntegerField(null=False, blank=True)
-    taxonomy = models.ForeignKey(Taxonomy, on_delete=models.RESTRICT)
+    taxonomy = models.ForeignKey(Taxonomy, null=True, on_delete=models.SET_NULL)
     domains = models.ManyToManyField(Pfam, through='ProteinDomain')
 
     def __str__(self):

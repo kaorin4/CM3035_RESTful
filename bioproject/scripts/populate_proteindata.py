@@ -18,10 +18,10 @@ pfam_data_file = '../datasets/pfam_descriptions.csv'
 assignment_data_file = '../datasets/assignment_data_set.csv'
 assignment_sequences_data_file = '../datasets/assignment_data_sequences.csv'
 
-pfam = set() #2453
-taxonomy = defaultdict(list) #1995
-domain = defaultdict() #2453
-protein = defaultdict(list) #9988
+pfam = set() 
+taxonomy = defaultdict(list) 
+domain = defaultdict() 
+protein = defaultdict(list) 
 proteindomain = defaultdict(list)
 
 # to open and store data from assignment_data_sequences.csv file
@@ -78,7 +78,7 @@ taxonomy_rows = {}
 protein_rows = {}
 proteindomain_rows = {}
 
-# Create pfam objects
+# Create a list of pfam objects
 pfam_list = [
     Pfam(
         domain_id = pfam_id,
@@ -86,12 +86,14 @@ pfam_list = [
     )
     for pfam_id, pfam_desc in pfam
 ]
+# Pass the list of objects to bulk_create to insert them into the database
 pfam_objs = Pfam.objects.bulk_create(pfam_list)
+# Dictionary of pfam objects to be retrieved when proteindomain objects are created
 pfam_rows = {x.domain_id:x for x in Pfam.objects.all()}
 print('Pfam objects created')
 
 
-# Create taxonomy objects
+# Create a list of taxonomy objects
 taxa_list = [
     Taxonomy(
         taxa_id = taxa_id,
@@ -101,11 +103,13 @@ taxa_list = [
     )
     for taxa_id, data in taxonomy.items()
 ]
+# Pass the list of objects to bulk_create to insert them into the database
 taxa_objs = Taxonomy.objects.bulk_create(taxa_list)
+# Dictionary of taxonomy objects to be retrieved when protein objects are created
 taxonomy_rows = {x.taxa_id:x for x in Taxonomy.objects.all()}
 print('Taxonomy objects created')
 
-# Create protein objects
+# Create a list of protein objects
 protein_list = [
     Protein(
         protein_id = protein_id,
@@ -115,11 +119,13 @@ protein_list = [
     )
     for protein_id, data in protein.items()
 ]
+# Pass the list of objects to bulk_create to insert them into the database
 protein_objs = Protein.objects.bulk_create(protein_list)
+# Dictionary of protein objects to be retrieved when proteindomain objects are created
 protein_rows = {x.protein_id:x for x in Protein.objects.all()}
 print('Protein objects created')
 
-# Create protein_domain objects
+# Create a list of proteindomain objects
 protein_domain_list = [
     ProteinDomain(
         protein = protein_rows[protein_domain[0]], 
@@ -130,5 +136,6 @@ protein_domain_list = [
     )
     for protein_domain, data in proteindomain.items()
 ]
+# Pass the list of objects to bulk_create to insert them into the database
 protein_domain_objs = ProteinDomain.objects.bulk_create(protein_domain_list)
 print('ProteinDomain objects created')
