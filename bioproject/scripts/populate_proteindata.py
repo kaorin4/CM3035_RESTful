@@ -18,16 +18,18 @@ pfam_data_file = '../datasets/pfam_descriptions.csv'
 assignment_data_file = '../datasets/assignment_data_set.csv'
 assignment_sequences_data_file = '../datasets/assignment_data_sequences.csv'
 
-pfam = set() #2453
-taxonomy = defaultdict(list) #1995
-domain = defaultdict() #2453
-protein = defaultdict(list) #9988
+pfam = set() 
+taxonomy = defaultdict(list) 
+domain = defaultdict() 
+protein = defaultdict(list) 
 proteindomain = defaultdict(list)
 
 # to open and store data from assignment_data_sequences.csv file
 with open(assignment_sequences_data_file) as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
+        # store protein_id as the key which is associated to a list with 3 elements
+        # this dataset only contains the first element: the sequence
         protein[row[0]] = [row[1], '', '']
 
 # to open and store data from pfam_descriptions.csv file
@@ -44,89 +46,96 @@ with open(assignment_data_file) as csv_file:
         if row[1] not in taxonomy.keys():
             # split genus species column into two: genus and species
             genus_species_pairs = row[3].split()
+            # store taxa_id as the key which is associated to a list of values that contain
+            # [0] clade [1] genus and [2] species
             taxonomy[row[1]] = [row[2], genus_species_pairs[0], genus_species_pairs[1]]
         # add domain
         if row[5] not in domain.keys():
+            # store domain_id as the key which is associated with a domain description
             domain[row[5]] = row[4]
         # protein data
         if row[0] not in protein.keys():
+            # if the protein key does not already exist, then it was not included in the
+            # dataset with protein sequences.
             protein[row[0]] = ['', row[1], row[8]]
         else:
+            # if its already included then the protein sequence is already stored.
+            # the list stores [0] sequence, [1] taxonomy id and [2] length
             protein[row[0]][1] = row[1]
             protein[row[0]][2] = row[8]
-        if row[0] not in proteindomain.keys():
-            proteindomain[row[0]] = [[row[5]], row[6], row[7]]
-        else:
-            proteindomain[row[0]][0].append(row[5])
+        # store the start and stop of each protein and domain pair
+        # therefore, the key is a protein and domain tuple
+        proteindomain[(row[0], row[5])] = [row[6], row[7]]
 
 
 ProteinDomain.objects.all().delete()
 Protein.objects.all().delete()
-Domain.objects.all().delete()
 Pfam.objects.all().delete()
 Taxonomy.objects.all().delete()
 
 pfam_rows = {}
 taxonomy_rows = {}
-domain_rows = {}
 protein_rows = {}
 proteindomain_rows = {}
 
-print(len(taxonomy))
-print(len(pfam))
-print(len(domain))
-print(len(proteindomain))
+# Create a list of pfam objects
+pfam_list = [
+    Pfam(
+        domain_id = pfam_id,
+        domain_description = pfam_desc
+    )
+    for pfam_id, pfam_desc in pfam
+]
+# Pass the list of objects to bulk_create to insert them into the database
+pfam_objs = Pfam.objects.bulk_create(pfam_list)
+# Dictionary of pfam objects to be retrieved when proteindomain objects are created
+pfam_rows = {x.domain_id:x for x in Pfam.objects.all()}
+print('Pfam objects created')
 
 
-for pfam_id, pfam_desc in pfam:
-    row = Pfam.objects.create(domain_id = pfam_id, domain_description = pfam_desc)
-    row.save()
-    pfam_rows[pfam_id] = row
+# Create a list of taxonomy objects
+taxa_list = [
+    Taxonomy(
+        taxa_id = taxa_id,
+        clade = data[0],
+        genus = data[1],
+        species = data[2]
+    )
+    for taxa_id, data in taxonomy.items()
+]
+# Pass the list of objects to bulk_create to insert them into the database
+taxa_objs = Taxonomy.objects.bulk_create(taxa_list)
+# Dictionary of taxonomy objects to be retrieved when protein objects are created
+taxonomy_rows = {x.taxa_id:x for x in Taxonomy.objects.all()}
+print('Taxonomy objects created')
 
-    row_domain = Domain.objects.create(pfam_id = pfam_rows[pfam_id], 
-                            description = domain[pfam_id])
-    row_domain.save()
-    domain_rows[pfam_id] = row_domain
+# Create a list of protein objects
+protein_list = [
+    Protein(
+        protein_id = protein_id,
+        sequence = data[0],
+        taxonomy = taxonomy_rows[data[1]],
+        length = data[2]
+    )
+    for protein_id, data in protein.items()
+]
+# Pass the list of objects to bulk_create to insert them into the database
+protein_objs = Protein.objects.bulk_create(protein_list)
+# Dictionary of protein objects to be retrieved when proteindomain objects are created
+protein_rows = {x.protein_id:x for x in Protein.objects.all()}
+print('Protein objects created')
 
-for taxa_id, data in taxonomy.items():
-    row = Taxonomy.objects.create(taxa_id = taxa_id, 
-                                clade = data[0],
-                                genus = data[1],
-                                species = data[2])
-    row.save()
-    taxonomy_rows[taxa_id] = row
-
-# for item in Pfam.objects.all():
-#     pfam_rows[item.domain_id] = item
-
-
-# for item in Domain.objects.all():
-#     domain_rows[item.pfam_id.domain_id] = item
-
-# for item in Taxonomy.objects.all():
-#     taxonomy_rows[item.taxa_id] = item
-
-# for item in Protein.objects.all():
-#     protein_rows[item.protein_id] = item
-
-
-for protein_id, data in protein.items():
-    row = Protein.objects.create(protein_id = protein_id, 
-                                sequence = data[0],
-                                taxonomy = taxonomy_rows[data[1]],
-                                length = data[2])
-    row.save()
-    protein_rows[protein_id] = row
-
-for protein_id, data in proteindomain.items():
-    for domain_id in proteindomain[protein_id][0]:
-        row = ProteinDomain.objects.create(protein = protein_rows[protein_id], 
-                                    start = data[1],
-                                    stop = data[2],
-                                    domain = domain_rows[domain_id])
-        row.save()
-        proteindomain_rows[protein_id] = row
-
-
-
-
+# Create a list of proteindomain objects
+protein_domain_list = [
+    ProteinDomain(
+        protein = protein_rows[protein_domain[0]], 
+        start = data[0],
+        stop = data[1],
+        pfam_id = pfam_rows[protein_domain[1]],
+        description = domain[protein_domain[1]]
+    )
+    for protein_domain, data in proteindomain.items()
+]
+# Pass the list of objects to bulk_create to insert them into the database
+protein_domain_objs = ProteinDomain.objects.bulk_create(protein_domain_list)
+print('ProteinDomain objects created')
